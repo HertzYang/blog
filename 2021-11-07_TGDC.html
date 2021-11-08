@@ -22,7 +22,7 @@ DC2 存在, 且为 MTProto API 所用;</br>
 <h2>了解 Bot 常用的获取 DC ID 的方式</h2>
 @WooMaiBot / @Sean_bot 与网页：https://lab.best33.com/telegram-datacenter 都是 TG 用户常见的查询自己或某用户所在 DC 的方法。</br>
 不难发现，这些 Bot 都基于一个特点：<b>通过用户头像存储的位置来判断用户所在 DC。</b></br>
-原来，TG 共有 DC1-5 5个数据中心（暂时称为数据中心），一位用户存在于一个特点的数据中心中，其上传的媒体文件包括头像将存储在这个 DC，其他用户若要读取则须先连接该 DC，并从该 DC 上读取该文件。</br>
+原来，TG 共有 DC1-5 5个数据中心（暂时称为数据中心），一位用户存在于一个特定的数据中心中，其上传的媒体文件包括头像将存储在这个 DC，其他用户若要读取则须先连接该 DC，并从该 DC 上读取该文件。</br>
 显然，通过解析该 DC IP 的位置就能轻松拿到用户所在 DC。</br>
 TG 正好又提供 t.me 服务，这是一种在浏览器中打开就能直接获取到 Chat / Message 详情的链接，<b>若查询目标内包含媒体文件，则会通过 Web CDN 下载该文件以便将其显示在浏览器中。</b></br>
 通过打开 t.me/HertzYang，我们不难发现头像是从 cdn5.telesco.pe 下载的。</br>
@@ -65,13 +65,20 @@ TG 正好又提供 t.me 服务，这是一种在浏览器中打开就能直接�
 <h2>那么 DC2、DC3 究竟是什么呢？</h2>
 通过简单的 mtr 可以发现，DC2、DC4 地理位置相同（欧洲荷兰），DC1、DC3 地理位置相同（美国迈阿密）。</br>
 </br>
+TG 实际上还有一个 Web 网页版，通过 Websocket 包装后的 MTProto 与 Telegram DC 间接通信。</br>
+</br>
+用户 <-> Websocket Forwarder <-> MTProto Server</br>
+</br>
+Websocket Forwarder 是一个类似于 Bot API 的存在，本身独立于 MTProto Server。</br>
+网页版 TG 有 zws{1-5}.web.telegram.org 共 5 个域名。</br>
+<b>然而，zws1、3 与 zws 2、4 的解析 IP 完全一致</b></br>
 <b>因此我大胆推测：</br>
 DC2 为 DC4 的附属 DC，DC3 为 DC1 的附属 DC</br>
 DC2、3 均无 Web CDN 能力，t.me 中 DC2、3 用户头像将由其上级 DC 的 Web CDN 提供</br>
 DC2、3 注册条件与上级 DC 相同，但只有部分情况才会将用户转入附属 DC 注册（个人推测是上级 DC 某一时间段内注册用户过多时就会发给附属 DC）</b></br>
 </br>
 这可以解释：</br>
-<h5>为什么 t.me 中 DC2、3 用户需要到 CDN1、4 去读取头像</h5>
+<h5>为什么 t.me 中 DC2、3 用户需要到 CDN1、4 去读取头像 / 为什么 DC2、3 用户也是连接 DC1、4 的 Websocket</h5>
 因为两两 DC 之间为附属关系，子 DC 部分功能残缺，故向上请求。</br>
 <h5>为什么 DC2、3 用户非常少见</h5>
 DC2、3 作为附属 DC 并不直接处理注册请求，与其他3个 DC 地位不平等，因此人很少。</br>
