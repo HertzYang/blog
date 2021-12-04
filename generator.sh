@@ -13,4 +13,5 @@ echo '<li><a target="_blank" href="https://zhiccc.net">Air Home</a></li>' >> $ma
 echo '<li><a target="_blank" href="https://i.yellowlm.net">yellowlm.net</a></li>' >> $main
 echo '<li><a target="_blank" href="https://jerryxiao.cc">JerryXiao Blog</a></li>' >> $main
 echo '<li><a target="_blank" href="https://blog.cas7.moe">moec@st</a></li>' >> $main
+echo '<li><a target="_blank" href="https://blog.yuuta.moe">Garden in the Wonderland</a></li>' >> $main
 echo '</ul></body></html>' >> $main
