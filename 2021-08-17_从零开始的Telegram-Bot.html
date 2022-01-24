@@ -1,9 +1,9 @@
 <title>关于写一个TG Bot这件事</title>
 <h1>从零开始的 Telegram Bot</h1>
-Bot：https://t.me/HertzTechnologyBot</br>
+Bot：https://t.me/HertzTechnologyBot<br>
 没有什么干货，主要是记录这个 Bot 的架构和一些开发历程。
 <h2>为什么要写一个TG Bot？</h2>
-想弄一个可以自助注册、创建VM的东西。由于不会前端（我的前端水平如你现在看到的这个页面一样辣鸡），TG Bot 成为了最好的选择。</br>
+想弄一个可以自助注册、创建VM的东西。由于不会前端（我的前端水平如你现在看到的这个页面一样辣鸡），TG Bot 成为了最好的选择。<br>
 依托于 Telegram，我们可以省去非常非常多的步骤：
 <ul>
 <li>鉴权：鉴权是一个相当复杂的需求，而且还会牵扯到存储密码、传输密码等流程，TG Bot可以直接使用用户的TG账号作为认证因素，十分便捷。</li>
@@ -15,9 +15,9 @@ Bot：https://t.me/HertzTechnologyBot</br>
 本文最后更新时间：2021-08-17，处于 赫兹云1.0 -> 2.0 升级过程中。
 
 <h2>AWS！（？）</h2>
-这个 Bot 完全运行在 AWS 上。</br>
-高端地说，这是一个完全上云的先进高级的应用。</br>
-也就是说，我已经被完全绑死在 AWS 上，这是因为我的 Bot 使用众多 AWS 服务，他们大多不能离开 AWS 独立运行。鉴于此项目不会有很多人用，不用太担心成本的问题，因此为了便捷开发最终我还是放在了 AWS 上。</br>
+这个 Bot 完全运行在 AWS 上。<br>
+高端地说，这是一个完全上云的先进高级的应用。<br>
+也就是说，我已经被完全绑死在 AWS 上，这是因为我的 Bot 使用众多 AWS 服务，他们大多不能离开 AWS 独立运行。鉴于此项目不会有很多人用，不用太担心成本的问题，因此为了便捷开发最终我还是放在了 AWS 上。<br>
 你可以根据你自己的需求进行选择，通常来说，放在 Serverless 服务上意味着你没有多少第三方文档可参考。
 这个 Bot 使用了这些 AWS 服务（错误，或者是正确示范）：
 <ul>
@@ -29,57 +29,57 @@ Bot：https://t.me/HertzTechnologyBot</br>
 <li>AWS S3：用来备份 VMDK 文件。Deep Glacier 类存储仅需 0.99美元/月/TB，简直白送。</li>
 <li>AWS CloudFront：用于查询 Session 状态的 routing.hertz.zone 加速，不过在赫兹云2.0中它会被 Websocket + 静态单页的方式取代。</li>
 </ul>
-看来我确实是一个合格的 AWS 玩家。</br></br>
-维护这些东西我每月大约需要花费1美元。</br>
-这是一个相当不错的价格，我只为 AWS S3 和 AWS DynamoDB 付费，其他都在免费套餐内。</br>
-其中 AWS S3 存了几百G的客户 VMDK 文件备份，DynamoDB 按需开了 8 个表并且同步在全球 6 个 Region。</br>
+看来我确实是一个合格的 AWS 玩家。<br><br>
+维护这些东西我每月大约需要花费1美元。<br>
+这是一个相当不错的价格，我只为 AWS S3 和 AWS DynamoDB 付费，其他都在免费套餐内。<br>
+其中 AWS S3 存了几百G的客户 VMDK 文件备份，DynamoDB 按需开了 8 个表并且同步在全球 6 个 Region。<br>
 这两个服务开销大约对半开。
 <h2>开发架构</h2>
-Bot 分为3个部分：dashboardBot，wsRouter，tasker</br>
-dashboardBot 负责接收和处理 Bot 请求，比如发的指令就是这一部分在处理。</br>
-wsRouter 负责处理 Websocket 请求，用于 节点 <=> 后端 与 后端 <=> 前端的通信。</br>
-tasker 被 AWS SQS 调用，负责将任务推送给节点。</br></br>
+Bot 分为3个部分：dashboardBot，wsRouter，tasker<br>
+dashboardBot 负责接收和处理 Bot 请求，比如发的指令就是这一部分在处理。<br>
+wsRouter 负责处理 Websocket 请求，用于 节点 <=> 后端 与 后端 <=> 前端的通信。<br>
+tasker 被 AWS SQS 调用，负责将任务推送给节点。<br><br>
 
-在赫兹云2.0中，当你在前端查询一个 Session 的状态，前端通过 Websocket 推送请求后，后端灰直接将请求实时推送到后端，回复后再转发回前端。</br>
-同样的，当你在 Bot 中新建了一个 BGP Session，tasker 会在 SQS 中读取任务详情并且通过 Websocket 推送给节点。</br>
+在赫兹云2.0中，当你在前端查询一个 Session 的状态，前端通过 Websocket 推送请求后，后端灰直接将请求实时推送到后端，回复后再转发回前端。<br>
+同样的，当你在 Bot 中新建了一个 BGP Session，tasker 会在 SQS 中读取任务详情并且通过 Websocket 推送给节点。<br>
 在节点完成操作后，再通过 Websocket 将任务标记为已完成，删去 SQS 中的消息，并且推送相关消息给用户（如有）。
-如果节点未能完成操作，待 SQS 中消息可见超时（我设为5分钟）后，任务就会被重试。</br></br>
+如果节点未能完成操作，待 SQS 中消息可见超时（我设为5分钟）后，任务就会被重试。<br><br>
 
-不过任务显然会存在依赖关系，比如为用户分配权限必须发生在虚拟机创建完成之后。</br>
+不过任务显然会存在依赖关系，比如为用户分配权限必须发生在虚拟机创建完成之后。<br>
 为了解决这个问题，我们可以在任务详情中引入一个 depends_on = []，附上所有的依赖的任务 ID。
-SQS 触发 Lambda 后，Lambda 在超时可见内不断读取其依赖任务是否完成，完成后再将任务推送给节点。</br></br>
+SQS 触发 Lambda 后，Lambda 在超时可见内不断读取其依赖任务是否完成，完成后再将任务推送给节点。<br><br>
 
 目前赫兹云仍处于1.0状态，节点是通过cron job来轮询一个HTTP接口，HTTP接口会返回目前 status 为 pending 的一些待配置的资源，然后立即将 pending 改为 ok。
 这一套方案是有明显弊端的，最重要的就是没有任务确认机制。后端并无法知道推送下去的任务是否真的完成了，默认只要推送就会任务 100% 成功，那么也就无法重试失败的任务。
 其次，它最多只能算准实时而不能算实时，同时也无法处理有依赖关系的任务。
 
 <h2>dashboardBot</h2>
-这个 Bot 确实比较复杂。</br>
-由于很多东西都存在需要多次交互，我们需要给每一个用户一个 Context。</br>
-我的 Context 由 Plugin 名开头，如 creating_ 开头的所有请求会被路由给 creating.py 处理。</br>
-头疼的是有按钮的存在，而且按钮的 Callback Data 可能已经不再可用。</br>
-比如用户已经删除了该资源，但是资源的控制面板在之前的消息内仍然可用。</br>
-而且部分按钮也需要依赖 Context，比如我 Bot 中的考试答题部分。</br></br>
-目前我使用了两个 Router，一个是 Message Router，一个是 Button Router。</br>
-但是他们还是非常混乱，因为两个 Router 最终都会再调用 Plugin 内的 Router()，而且 Plugin 内的 Router 是融合的，用低端一点的话来说就是不分 Button / Mmessage，也给处理带来了困难。</br>
+这个 Bot 确实比较复杂。<br>
+由于很多东西都存在需要多次交互，我们需要给每一个用户一个 Context。<br>
+我的 Context 由 Plugin 名开头，如 creating_ 开头的所有请求会被路由给 creating.py 处理。<br>
+头疼的是有按钮的存在，而且按钮的 Callback Data 可能已经不再可用。<br>
+比如用户已经删除了该资源，但是资源的控制面板在之前的消息内仍然可用。<br>
+而且部分按钮也需要依赖 Context，比如我 Bot 中的考试答题部分。<br><br>
+目前我使用了两个 Router，一个是 Message Router，一个是 Button Router。<br>
+但是他们还是非常混乱，因为两个 Router 最终都会再调用 Plugin 内的 Router()，而且 Plugin 内的 Router 是融合的，用低端一点的话来说就是不分 Button / Mmessage，也给处理带来了困难。<br>
 这是赫兹云2.0中需要解决的问题。
 
 <h2>Filter</h2>
-最令人头疼的地方。</br>
-目前我采用的方法是弄一个 update.sh，里面写满了 bgpq xxx > filter.conf。</br>
-每一次有更新时，会先判断这个生成 Filter 命令是否已经存在，不存在就加入。同时也会判断一下这个 ASN / AS-SET 有没有在我的 AS-SET 里，没有的话就会顺便调用 RIPE API 将其加入。</br>
-但是目前我的 update.sh 已经有整整 55 行，更新需要1分钟甚至数分钟，并且更新期间非常容易出现 Timeout 然后停止更新并且导致这个 filter.conf 内有语法错误无法应用配置。</br></br>
+最令人头疼的地方。<br>
+目前我采用的方法是弄一个 update.sh，里面写满了 bgpq xxx > filter.conf。<br>
+每一次有更新时，会先判断这个生成 Filter 命令是否已经存在，不存在就加入。同时也会判断一下这个 ASN / AS-SET 有没有在我的 AS-SET 里，没有的话就会顺便调用 RIPE API 将其加入。<br>
+但是目前我的 update.sh 已经有整整 55 行，更新需要1分钟甚至数分钟，并且更新期间非常容易出现 Timeout 然后停止更新并且导致这个 filter.conf 内有语法错误无法应用配置。<br><br>
 
-赫兹云2.0将会放弃 update.sh，转而使用 update.py。</br>
-检查客户 ASN 是否在我的 AS-SET 并加入的工作将在云上完成，Filter 也将在云上生成并且放进数据库。</br>
-update.py 只是简单的通过 HTTP 或者 Websocket 将 Filter 下载并且写入本地。</br>
+赫兹云2.0将会放弃 update.sh，转而使用 update.py。<br>
+检查客户 ASN 是否在我的 AS-SET 并加入的工作将在云上完成，Filter 也将在云上生成并且放进数据库。<br>
+update.py 只是简单的通过 HTTP 或者 Websocket 将 Filter 下载并且写入本地。<br>
 这样，即使在以后赫兹云有多个节点后，也能自然的更新 Filter。
 
 <h2>题外话</h2>
-赫兹云2.0的 routing.hertz.zone 由 moecast 编写，价格很实惠。<del>（每晚只需要--元。）</del></br></br>
+赫兹云2.0的 routing.hertz.zone 由 moecast 编写，价格很实惠。<del>（每晚只需要--元。）</del><br><br>
 
-Hetzner 提供实惠的杜甫（34Eur = 64G + 2*500G SSD + AMD 3600 6C 8T）</br>
-vSerever 提供实惠的 IX VM（不到 10 Eur 即可接入 KleyReX + LocIX 并且白嫖 HE 的 IPv6 网络）</br>
-所以最终赫兹云是计算、网络分离，两台服务器之间设置了一个 WireGuard 隧道。</br></br>
+Hetzner 提供实惠的杜甫（34Eur = 64G + 2*500G SSD + AMD 3600 6C 8T）<br>
+vSerever 提供实惠的 IX VM（不到 10 Eur 即可接入 KleyReX + LocIX 并且白嫖 HE 的 IPv6 网络）<br>
+所以最终赫兹云是计算、网络分离，两台服务器之间设置了一个 WireGuard 隧道。<br><br>
 
 感谢 HE 的免费 IPv6 Transit 为 Player 事业发展助力！
