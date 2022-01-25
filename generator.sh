@@ -16,4 +16,5 @@ echo '<li><a target="_blank" href="https://blog.cas7.moe">moec@st</a></li>' >> $
 echo '<li><a target="_blank" href="https://blog.yuuta.moe">Garden in the Wonderland</a></li>' >> $main
 echo '<li><a target="_blank" href="https://www.kskb.eu.org">Kskb的空间</a></li>' >> $main
 echo '<li><a target="_blank" href="https://blog.baoshuo.ren">宝硕博客</a></li>' >> $main
+echo '<li><a target="_blank" href="https://blog.alanyhq.com">Alanyhq Blog</a></li>' >> $main
 echo '</ul></body></html>' >> $main
