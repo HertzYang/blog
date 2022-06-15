@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+<title>下一代网际协议 IPv6 入门级教程 | Hertz Blog</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.1.0/github-markdown-light.min.css">
+<style>
+        .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+        }
+
+        @media (prefers-color-scheme: light) {
+            .markdown-body {
+                padding: 15px;
+            }
+        }
+		</style>
+</head>
+<body>
+<article class="markdown-body">
+    <h1>下一代网际协议：IPv6</h1>
+	<h1>引言</h1>
+    <p>2012年6月6日为 IPv6 启动日，今天，IPv6 普及依然十分有限，并且有相当数量的家庭用户无法理解 IPv6。</p>
+    <p>本文希望借此 IPv6 启动日十周年的机会，围绕 IPv6，介绍相关的网络基本知识。</p>
+    <p>本文将不会列出本文各选段的参考资料。（本文受众读者为仅有非常有限网络知识的朋友，大篇幅介绍参考资料来源没有任何作用）</p>
+    </p>
+    <h1>IPv6 地址</h1>
+    <p>IPv6 地址范围为 0000:0000:0000:0000:0000:0000:0000:0000 至 ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff。<br>
+    其中，IPv6 中连续的一组或多组 0 可以被省略，每组的前导 0 也可以被省略，如 2a09:0000:0000:0000:0000:0000:0000:0001 可以省略为 2a09::1，需要注意的是，这种缩写不能在同一个地址内出现两次，如 2a09::1::1，这是一个不合法的地址。因为系统无法确定每一个 "::" 分别代表了几组 0，这个地址将有非常非常多的可能形式。<br>
+    IPv6 地址长度为 128 位（比特，Bit），以 16 进制数（0123456789abcdef）表示。<br>
+    理论上来说，IPv6 地址范围地址总数高达 2^128，这是一个非常非常非常巨大的数字。<br>
+    我们需要对巨大的 IPv6 地址范围好好规划，不能当地主的傻儿子。<br>
+    IPv6 地址可分为：单播、任播与多播。<br>
+    单播地址最为常见，你所接触到的地址绝大多数均为单播地址。<br>
+    其中，单播地址中有 GUA 和 ULA 两大概念，可以简单的理解为 GUA = 公网地址，ULA = 内网地址。<br>
+    GUA，即 Global Unicast Address，是全球单播地址，目前启用的 GUA 空间为 2000::/3，这些地址是可以被全球路由的。<br>
+    相对而言，ULA，Unique Local Address，只能在 “local”，也就是本地范围内生效。但此 local 的范围可以是你的本地局域网，也可以是一个机房内甚至更大，标准并没有规定一个多大的网络才叫 local，所以你甚至可以用 ULA 组网，运行 BGP 协议。<br>
+    <b>需要注意的是，你真的*不需要*一个 ULA 地址，即使你有访问 LAN 中其他机器的需求，即使你的运营商分配给你的 IPv6 为动态的，即便不希望将内网暴露给整个公网。这些需求都*不需要*你有一个 ULA 地址，我们将稍后谈论这个问题。</b>
+    <pre>🤔 在 Chromium 中，IPv6 ULA 地址的优先级甚至低于 IPv4，也就是说，如果你你所处的网络 IPv6 是通过下发 ULA 地址并 NAT 实现的，Chromium 宁愿不去用 IPv6 而是直接使用 IPv4。</pre>
+    <pre>🤔 你或许注意过系统中所有启用 IPv6 的网卡上都有一个 fe80 开头的地址，这其实是链路本地地址，这是一个自动配置的地址，根据 MAC 地址生成（EUI-64），本文不做介绍。（但是它绝对不是你用来访问其他设备用的）</pre>
+    <pre>🤔 常见误解：IPv6 公网地址分到了设备，没有 NAT，因此没有 IPv4 安全。这种说法是不正确的，NAT 并非安全手段，相反，它破坏了 IP 网络的对称性。IPv6 中，防火墙依旧可以阻断入站连接，你并不需要把你的内网设备暴露到整个公网。比如说，家用 TP-Link 路由器经笔者测试会直接阻断所有 IPv6 入站且无关闭选项，部分地区的家宽也会阻断 IPv6 所有入站。</pre>
+    <p>延伸阅读：<a target="_blank" href="http://soha.moe/post/is-every-ipv6-address-in-subnet-usable.html">海上的宫殿：IPv6真的每个地址都能用吗</a></p>
+    <p>IPv6 中的本地回环地址是 ::1/128，没有像 IPv4 一样直接使用 127.0.0.0/8 一整个段。</p>
+    </p>
+    <h1>IPv6 历史</h1>
+    <p>继续深入之前，让我们简单了解一下历史中 IPv6 所应用和抛弃的各项技术</p>
+    <h2>IPSec</h2>
+    <p>#然而并没有。</p>
+    <p>有传言说中国大陆一直故意迟迟不推广 IPv6 是因为 IPv6 标准强制 IPSec 实现，这是完全不符合事实的。IPv6 之前的确强制 IPSec 实现，但是那是上古时期的事情，在 2011 年便废止了强制要求。并且，标准只是强制 IPSec 实现，也就是说要在 IPv6 堆栈中实现对 IPSec 的支持，从来没有强制要求使用 IPSec，这样的传言是完全失实的。</p>
+    <p>IPv6 启动日为 2012 年，此时强制 IPSec 支持已经被废止，中国大陆并没有因此故意迟迟不推广 IPv6。</p>
+    <h2>Teredo / ISATAP</h2>
+    <p>上古时期，许多企业、高校都推出了 Teredo 和 ISATAP 隧道服务，使 IPv4 Only 的用户可以通过他们的双栈网络转接支持 IPv6。</p>
+    <p>没持续多久就全倒闭了，后来系统也陆续移除了对这些隧道的支持。</p>
+    <h1>IPv6 地址分配</h1>
+    <p>在中国大陆，普遍的网络环境是通过 PPPoE 获取 IPv4，然后通过 DHCPv6 在 PPPoE 内获取 IPv6 前缀。</p>
+    <p>IPv6 其实有一个正统、带内、无状态且优雅的地址配置方式：SLAAC</p>
+    <p>它是在 IPv6 ND 中定义、通过 ICMPv6 承载的，路由器只需要无脑发包向所有设备通告前缀，设备会自己生成一个前缀并使用。这是终端用户最常见的 IPv6 地址配置方式，简单且快速。</p>
+    <p>在 SLAAC 中，地址是通过 EUI-64 生成的，前 64 bits 由路由器通过 ICMPv6 多播通告至客户端，EUI-64 是 MAC 地址转 IPv6 后缀的标准，也就是说，一个客户端的地址是可以被确定的：ISP下发的前缀 + 客户端网卡 MAC 地址。</p>
+    <p>这无疑是不好的，因此 RFC 4941 SLAAC 隐私扩展出现了，客户端会生成一些与 MAC 地址无关的临时地址，以免将自己的 MAC 地址暴露给全世界，这也就是为什么当你打开链接详情时能看到 IPv6 有好几个地址。</p>
+    <p>IPv6 ND 还可以通告客户端使用 DHCPv6 有状态/无状态配置地址，也可以由客户端主动发起 DHCPv6 请求，DHCPv6 是中国大陆 ISP 给用户下发前缀最常见的方式，本文不做介绍。</p>
+    <pre>🤔 SLAAC 无状态自动配置只有在路由器可提供 /64 前缀时可用，如果前缀大于 /64，路由器可选择大段中其中一个 /64 进行地址分配，若小于 /64，则无法使用 SLAAC 进行地址配置。</pre>
+    <p>延伸阅读：<a target="_blank" href="https://www.packetmania.net/2020/12/01/IPv6-Addressing/">IPv6动态地址分配机制详解</a></p>
+    <p>SLAAC 下发的地址有 lifetime 概念，而操作系统中每个 IPv6 地址都有 valid_lft 与 preferred_lft 两大概念，这就是为什么你其实不需要 ULA 地址。当 ISP 下发新前缀时，旧的前缀依然绑定在机器上，只是新前缀下发后机器倾向于使用新地址发起连接，但依然可以接受访问旧地址的请求。</p>
+    <p>所以只要你的域名 DDNS 解析能在旧前缀失效前更新，地址的切换是非常平滑的，不会造成任何中断。</p>
+    <p>IPv6 时代 DDNS 推荐使用：<a target="_blank" href="https://dynv6.com/">dynv6</a></p>
+    <p>延伸阅读：<a target="_blank" href="https://blog.apnic.net/2022/06/10/iot-devices-endanger-ipv6-privacy/">APNIC Blog：未启用 SLAAC 隐私扩展的设备如何损害你的隐私</a></p>
+    <h1>IPv6 连接性</h1>
+    <h2>MTU</h2>
+    <p>现实中 MTU 总是不处处相等的，如 PPPoE 中，PPP 头占 8 Bytes，因此使用 PPPoE 接入的家宽 MTU 只有 1492。而 Ethernet 本身 MTU 默认为 1500，因此局域网下的设备连接时会以 1500 为 MTU 协商出 TCP MSS（可以理解为 TCP 世界的 MTU），这 MSS 数值会比正确数值高 8 Bytes，导致网络很不正常，处于非常鬼畜的状态（部分网站打得开，部分网站能开但很卡，部分网站干脆直接打不开）。</p>
+    <p>在 IPv4 时代中，这个问题主要是光猫解决的，光猫自动在 TCP 协商时修改里面的 MSS，帮其减去 8，这种技术称为 TCP MSS Clamping，这种 Clamping 对连接双方是透明的，可以很好的解决 MSS 的问题。</p>
+    <p>在 IPv6 时代中，IPv6 ND 下发时可以指定 MTU （其实 DHCP 也可以，但好像没人这么做），因此 MTU 对设备是可见的，也就不再需要路由器进行 TCP MSS Clamping。</p>
+    <p>IPv6 中其实还有一项技术叫做 PMTUD，Path MTU Discovery，若你发出了过大的包，路上路由器会生成一个消息，指示包过大并指示可接受的最大大小，设备收到该消息后添加一条到该目的地的路由并指定 MTU。在 Linux 和 Windows 中，这条路由默认的有效时间为 10 分钟。</p>
+    <p>一般来说，最好还是通过 IPv6 ND 下发正确的 MTU 而不依赖 PMTUD，因为 PMTUD 并不总是可用（ICMP 黑洞），并且 PMTUD 会造成额外的握手时间，降低性能。应将 PMTUD 视为保证连接正常的最后一层手段，而非直接依赖于 PMTUD。</p>
+    <p>延伸阅读：<a target="_blank" href="https://blog.cloudflare.com/increasing-ipv6-mtu/">Cloudflare Blog：为何我们在增加 IPv6 MTU </a></p>
+    <p>根据 RFC 标准，IPv6 本身最低需要有 1280 Bytes 的 MTU。虽然这不是绝对的，但在实践中可以直接将 IPv6 最低 MTU 视作 1280。</p>
+    <h2>Happy Eyeballs</h2>
+    <p>Happy Eyeball 测试是2011年世界 IPv6 日的一部分，并在 2012 年成为 RFC 标准，它定义了在双栈环境下快速回退的机制，因为有些网络的 IPv6 配置可能根本不通，虽然分配到了地址但无法使用，若浏览器只是盲目的优先使用 IPv6 就会造成开启 IPv6 = 断网的情况。</p>
+    <p>为了避免这种问题导致大家纷纷禁用 IPv6，Happy Eyeballs 可以在 IPv6 不通时快速回退至 IPv4。</p>
+    <h1>结语</h1>
+    <p>到这里大概就没了，只是用尽可能通俗的语言介绍了 IPv6 最基础的一些东西。</p>
+</article>
+</body>
+</html>
